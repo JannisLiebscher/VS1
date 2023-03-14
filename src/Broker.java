@@ -18,8 +18,8 @@ public class Broker {
             Message message = endpoint.blockingReceive();
             int port = message.getSender().getPort();
             if(message.getPayload() instanceof RegisterRequest) register(port);
-            if(message.getPayload() instanceof DeregisterRequest) deregister(port);
-            if(message.getPayload() instanceof HandoffRequest) handoffFish(port,
+            else if(message.getPayload() instanceof DeregisterRequest) deregister(port);
+            else if(message.getPayload() instanceof HandoffRequest) handoffFish(port,
                     ((HandoffRequest) message.getPayload()).getFish());
             else {
                 System.out.println("Unsupported Request");
