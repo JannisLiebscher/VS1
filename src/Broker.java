@@ -29,7 +29,8 @@ public class Broker {
 
     public void register(int port) {
         clients.add("tank" + counter, port);
-        endpoint.send(new InetSocketAddress(port), new RegisterResponse("tank" + counter));
+        endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse("tank" + counter));
+        System.out.println("Registered tank" + counter);
         counter++;
     }
     public void deregister(int port) {
@@ -41,11 +42,11 @@ public class Broker {
         if (fish.getDirection().getVector() < 0) {
             int neighbour = index == 0 ? clients.size() - 1 : index - 1;
             int sendTo = (int) clients.getClient(neighbour);
-            endpoint.send(new InetSocketAddress(sendTo), new HandoffRequest(fish));
+            endpoint.send(new InetSocketAddress("localhost", sendTo), new HandoffRequest(fish));
         } else {
             int neighbour = index == clients.size() - 1 ? 0 : index + 1;
             int sendTo = (int) clients.getClient(neighbour);
-            endpoint.send(new InetSocketAddress(sendTo), new HandoffRequest(fish));
+            endpoint.send(new InetSocketAddress("localhost", sendTo), new HandoffRequest(fish));
         }
     }
 
