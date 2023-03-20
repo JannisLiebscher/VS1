@@ -1,11 +1,9 @@
 import aqua.blatt1.broker.ClientCollection;
 import aqua.blatt1.common.FishModel;
-import aqua.blatt1.common.msgtypes.DeregisterRequest;
-import aqua.blatt1.common.msgtypes.HandoffRequest;
-import aqua.blatt1.common.msgtypes.RegisterRequest;
-import aqua.blatt1.common.msgtypes.RegisterResponse;
+import aqua.blatt1.common.msgtypes.*;
 import messaging.*;
 
+import javax.swing.*;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,19 +16,27 @@ public class Broker {
     private ClientCollection clients = new ClientCollection();
     private int counter = 0;
     private ReadWriteLock lock = new ReentrantReadWriteLock();
+    boolean done = false;
     public void broker() {
         ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
-        boolean done = false;
+        Thread stop = new Thread(() -> stop());
+        stop.start();
         while(!done) {
             Message message = endpoint.blockingReceive();
             executor.execute(new BrokerTask(message));
         }
+        System.out.println("while ende");
+    }
+    private void stop(){
+        JOptionPane.showMessageDialog(null, "Press OK button to stop Server");
+        done = true;
+        System.out.println("stop ende");
     }
 
     public void register(int port) {
         lock.writeLock().lock();
         clients.add("tank" + counter, port);
-        lock.readLock().unlock();
+        lock.writeLock().unlock();
         endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse("tank" + counter));
         System.out.println("Registered tank" + counter);
         counter++;
@@ -60,6 +66,7 @@ public class Broker {
     public static void main( String[] args) {
         Broker broker = new Broker();
         broker.broker();
+        System.out.println("main ende");
     }
     public class BrokerTask  implements Runnable {
         private Message message;
