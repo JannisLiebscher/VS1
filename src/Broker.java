@@ -1,6 +1,9 @@
 import aqua.blatt1.broker.ClientCollection;
 import aqua.blatt1.common.FishModel;
+import aqua.blatt1.common.Properties;
 import aqua.blatt1.common.msgtypes.*;
+import aqua.blatt2.broker.PoisonPill;
+import aqua.blatt2.broker.Poisoner;
 import messaging.*;
 
 import javax.swing.*;
@@ -25,13 +28,20 @@ public class Broker {
             Message message = endpoint.blockingReceive();
             executor.execute(new BrokerTask(message));
         }
-        System.out.println("while ende");
+        System.out.println("end of while");
+        executor.shutdown();
+        stop.interrupt();
     }
     private void stop(){
-        JOptionPane.showMessageDialog(null, "Press OK button to stop Server");
+        JOptionPane.showMessageDialog(null, "Press OK to stop Server", "Aufgabe 2 Stop Request", 2);
+        terminate();
+    }
+    private void terminate(){
         done = true;
+        endpoint.send(new InetSocketAddress("localhost", Properties.PORT), null);
         System.out.println("stop ende");
     }
+
 
     public void register(int port) {
         lock.writeLock().lock();
@@ -81,8 +91,9 @@ public class Broker {
             else if(message.getPayload() instanceof DeregisterRequest) deregister(port);
             else if(message.getPayload() instanceof HandoffRequest) handoffFish(port,
                     ((HandoffRequest) message.getPayload()).getFish());
+            else if(message.getPayload() instanceof PoisonPill) terminate();
             else {
-                System.out.println("Unsupported Request");
+                System.out.println("Unsupported Request or shutdown");
             }
         }
     }
