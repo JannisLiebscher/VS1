@@ -21,7 +21,8 @@ public class Poisoner {
 	}
 
 	public static void main(String[] args) {
-		JOptionPane.showMessageDialog(null, "Press OK button to poison server.");
+		JOptionPane.showMessageDialog(null, "Press OK to send Poison Pill to Server",
+				"Poisoner", 2);
 		new Poisoner().sendPoison();
 	}
 }

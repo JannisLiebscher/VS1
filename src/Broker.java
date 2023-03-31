@@ -7,6 +7,7 @@ import aqua.blatt2.broker.Poisoner;
 import messaging.*;
 
 import javax.swing.*;
+import java.io.SerializablePermission;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +16,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Broker {
     private static final int NUM_THREADS = 5;
-    private Endpoint endpoint = new Endpoint(4711);
+    private Endpoint endpoint = new Endpoint(Properties.PORT);
     private ClientCollection clients = new ClientCollection();
     private int counter = 0;
     private ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -25,6 +26,7 @@ public class Broker {
         Thread stop = new Thread(() -> stop());
         stop.start();
         while(!done) {
+
             Message message = endpoint.blockingReceive();
             executor.execute(new BrokerTask(message));
         }
