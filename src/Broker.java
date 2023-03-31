@@ -1,13 +1,15 @@
 import aqua.blatt1.broker.ClientCollection;
 import aqua.blatt1.common.FishModel;
 import aqua.blatt1.common.Properties;
-import aqua.blatt1.common.msgtypes.*;
+import aqua.blatt1.common.msgtypes.DeregisterRequest;
+import aqua.blatt1.common.msgtypes.HandoffRequest;
+import aqua.blatt1.common.msgtypes.RegisterRequest;
+import aqua.blatt1.common.msgtypes.RegisterResponse;
 import aqua.blatt2.broker.PoisonPill;
-import aqua.blatt2.broker.Poisoner;
-import messaging.*;
+import messaging.Endpoint;
+import messaging.Message;
 
 import javax.swing.*;
-import java.io.SerializablePermission;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -99,5 +101,4 @@ public class Broker {
             }
         }
     }
-
 }
