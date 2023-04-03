@@ -1,5 +1,6 @@
 package aqua.blatt1.client;
 
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Observable;
@@ -7,6 +8,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.net.InetSocketAddress;
 
 import aqua.blatt1.common.Direction;
 import aqua.blatt1.common.FishModel;
@@ -21,6 +23,8 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	protected final Set<FishModel> fishies;
 	protected int fishCounter = 0;
 	protected final ClientCommunicator.ClientForwarder forwarder;
+	private InetSocketAddress right  = new InetSocketAddress(0000);
+	private InetSocketAddress left = new InetSocketAddress(0000);
 
 	public TankModel(ClientCommunicator.ClientForwarder forwarder) {
 		this.fishies = Collections.newSetFromMap(new ConcurrentHashMap<FishModel, Boolean>());
@@ -30,6 +34,17 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	synchronized void onRegistration(String id) {
 		this.id = id;
 		newFish(WIDTH - FishModel.getXSize(), rand.nextInt(HEIGHT - FishModel.getYSize()));
+	}
+
+	synchronized void newNeighbor(InetSocketAddress rightInput, InetSocketAddress leftInput){
+		if(rightInput != null){
+			right = rightInput;
+			System.out.println("new right Neighbor: " + right.getPort());
+		}
+		if(leftInput != null) {
+			left = leftInput;
+			System.out.println("new left Neighbor: " + left.getPort());
+		}
 	}
 
 	public synchronized void newFish(int x, int y) {
@@ -67,9 +82,10 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 
 			fish.update();
 
-			if (fish.hitsEdge())
-				forwarder.handOff(fish);
-
+			if (fish.hitsEdge() && fish.getDirection().getVector() < 0)
+				forwarder.handOff(fish,left);
+			if(fish.hitsEdge() && fish.getDirection().getVector() > 0)
+				forwarder.handOff(fish,right);
 			if (fish.disappears())
 				it.remove();
 		}
