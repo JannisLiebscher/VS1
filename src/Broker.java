@@ -43,17 +43,27 @@ public class Broker {
         endpoint.send(new InetSocketAddress("localhost", Properties.PORT), new StopRequest());
     }
 
-
     public void register(int port) {
         lock.writeLock().lock();
         clients.add("tank" + counter, port);
-        lock.writeLock().unlock();
         endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse("tank" + counter));
+        endpoint.send(new InetSocketAddress("localhost", port), new UpdateNeighbor(
+                new InetSocketAddress((int) clients.getLeftNeighorOf(clients.size() - 1)),
+                new InetSocketAddress((int) clients.getRightNeighorOf(clients.size() - 1)))
+        );
         System.out.println("Registered tank" + counter);
         counter++;
+        lock.writeLock().unlock();
     }
+
     public void deregister(int port) {
         lock.writeLock().lock();
+        int left = (int) clients.getLeftNeighorOf(clients.indexOf(port));
+        int right = (int) clients.getRightNeighorOf(clients.indexOf(port));
+        endpoint.send(new InetSocketAddress("localhost", left),
+                new UpdateNeighbor(null, new InetSocketAddress(right)));
+        endpoint.send(new InetSocketAddress("localhost", right),
+                new UpdateNeighbor(new InetSocketAddress(left), null));
         clients.remove(clients.indexOf(port));
         lock.writeLock().unlock();
     }
