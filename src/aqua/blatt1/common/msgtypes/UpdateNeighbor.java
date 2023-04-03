@@ -4,17 +4,13 @@ import java.io.Serializable;
 import java.net.InetSocketAddress;
 
 public final class UpdateNeighbor implements Serializable {
-    private final int side;
-    private final InetSocketAddress neigbor;
+    private final InetSocketAddress right;
+    private final InetSocketAddress left;
 
-    public UpdateNeighbor(int side, InetSocketAddress neighbor) {
-        this.side = side;
-        this.neigbor = neighbor;
+    public UpdateNeighbor(InetSocketAddress left, InetSocketAddress right) {
+        this.left = left;
+        this.right = right;
     }
-
-    public int getSide() {
-        return side;
-    }
-    public InetSocketAddress getNeigbor() { return neigbor;}
-
+    public InetSocketAddress getLeft() { return left;}
+    public InetSocketAddress getRi  () { return right;}
 }
