@@ -5,6 +5,7 @@ import aqua.blatt1.common.msgtypes.*;
 import aqua.blatt2.broker.PoisonPill;
 import messaging.Endpoint;
 import messaging.Message;
+//test
 
 import javax.swing.*;
 import java.net.InetSocketAddress;
