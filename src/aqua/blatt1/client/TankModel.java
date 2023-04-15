@@ -23,8 +23,8 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	protected final Set<FishModel> fishies;
 	protected int fishCounter = 0;
 	protected final ClientCommunicator.ClientForwarder forwarder;
-	private InetSocketAddress right  = new InetSocketAddress(0000);
-	private InetSocketAddress left = new InetSocketAddress(0000);
+	private InetSocketAddress right  = null;
+	private InetSocketAddress left = null;
 
 	public TankModel(ClientCommunicator.ClientForwarder forwarder) {
 		this.fishies = Collections.newSetFromMap(new ConcurrentHashMap<FishModel, Boolean>());
@@ -83,9 +83,11 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 			fish.update();
 
 			if (fish.hitsEdge() && fish.getDirection().getVector() < 0)
-				forwarder.handOff(fish,left);
+				if(left != null) forwarder.handOff(fish,left);
+				else fish.reverse();
 			if(fish.hitsEdge() && fish.getDirection().getVector() > 0)
-				forwarder.handOff(fish,right);
+				if(right != null) forwarder.handOff(fish,right);
+				else fish.reverse();
 			if (fish.disappears())
 				it.remove();
 		}
