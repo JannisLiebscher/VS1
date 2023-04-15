@@ -8,7 +8,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.net.InetSocketAddress;
 
 import aqua.blatt1.common.Direction;
 import aqua.blatt1.common.FishModel;
@@ -25,6 +24,22 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	protected final ClientCommunicator.ClientForwarder forwarder;
 	private InetSocketAddress right  = null;
 	private InetSocketAddress left = null;
+	private boolean token = false;
+	public boolean getToken() { return this.token;}
+	public void takeToken() {
+		try {
+			TimeUnit.SECONDS.sleep(2);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		this.token = false;
+		forwarder.handoffToken(left);
+	}
+	public void giveToken() {
+		this.token = true;
+		Thread take = new Thread(this::takeToken);
+		take.start();
+	}
 
 	public TankModel(ClientCommunicator.ClientForwarder forwarder) {
 		this.fishies = Collections.newSetFromMap(new ConcurrentHashMap<FishModel, Boolean>());
@@ -81,13 +96,13 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 			FishModel fish = it.next();
 
 			fish.update();
-
-			if (fish.hitsEdge() && fish.getDirection().getVector() < 0)
+			if (this.token && fish.hitsEdge() && fish.getDirection().getVector() < 0)
 				if(left != null) forwarder.handOff(fish,left);
 				else fish.reverse();
-			if(fish.hitsEdge() && fish.getDirection().getVector() > 0)
+			if(this.token && fish.hitsEdge() && fish.getDirection().getVector() > 0)
 				if(right != null) forwarder.handOff(fish,right);
 				else fish.reverse();
+			if(!this.token && fish.hitsEdge()) fish.reverse();
 			if (fish.disappears())
 				it.remove();
 		}

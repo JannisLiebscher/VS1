@@ -45,6 +45,7 @@ public class Broker {
 
     public void register(int port) {
         lock.writeLock().lock();
+        if(clients.size() == 0) endpoint.send(new InetSocketAddress("localhost", port), new TokenRequest());
         clients.add("tank" + counter, port);
         // Neu registrierter Client
         endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse("tank" + counter));
