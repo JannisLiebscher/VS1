@@ -163,12 +163,7 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	public synchronized void finish() {
 		forwarder.deregister(id);
 	}
-	private enum Record {
-		IDLE,
-		LEFT,
-		RIGHT,
-		BOTH
-	}
+	private enum Record {IDLE, LEFT, RIGHT,	BOTH}
 	public synchronized void setEnum(int n) {
 		switch (record) {
 			case BOTH -> {
