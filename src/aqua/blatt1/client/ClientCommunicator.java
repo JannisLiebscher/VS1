@@ -36,6 +36,12 @@ public class ClientCommunicator {
 		public void handoffToken(InetSocketAddress adress) {
 			endpoint.send(adress, new TokenRequest());
 		}
+		public void sendMarker(InetSocketAddress adress) {
+			endpoint.send(adress, new SnapshotMarker());
+		}
+		public void collectToken(int snapshot, InetSocketAddress adress) {
+			endpoint.send(adress, new SnapshotToken(snapshot));
+		}
 	}
 
 	public class ClientReceiver extends Thread {
@@ -61,8 +67,15 @@ public class ClientCommunicator {
 
 				if (msg.getPayload() instanceof TokenRequest)
 					tankModel.giveToken();
-				if (msg.getPayload() instanceof MarkerRequest)
-					tankModel.setEnum();
+				if (msg.getPayload() instanceof SnapshotRequest)
+					tankModel.initiateSnapshot();
+				if (msg.getPayload() instanceof SnapshotToken)
+					tankModel.collectSnapshot(((SnapshotToken) msg.getPayload()).getSnapshot());
+				if (msg.getPayload() instanceof SnapshotMarker) {
+					if (msg.getSender().equals(tankModel.left)) tankModel.setEnum(-1);
+					else if (msg.getSender().equals(tankModel.right)) tankModel.setEnum(1);
+					else System.out.println("Sender was not a neighbour");
+				}
 			}
 			System.out.println("Receiver stopped.");
 		}

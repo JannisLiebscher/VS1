@@ -35,17 +35,16 @@ public class Broker {
         stop.interrupt();
     }
     private void stop(){
-        JOptionPane.showMessageDialog(null, "Press OK to stop Server", "Aufgabe 2 Stop Request", 2);
-        terminate();
+        JOptionPane.showMessageDialog(null, "Press OK initiate Snapshot", "Aufgabe 4 Snapshot Request", 2);
+        snapshot();
     }
-    private void terminate(){
-        done = true;
-        endpoint.send(new InetSocketAddress("localhost", Properties.PORT), new StopRequest());
+    private void snapshot(){
+        endpoint.send(new InetSocketAddress("localhost", (int) clients.getClient(0)), new SnapshotRequest());
     }
 
     public void register(int port) {
         lock.writeLock().lock();
-        if(clients.size() == 0) endpoint.send(new InetSocketAddress("localhost", port), new TokenRequest());
+        //if(clients.size() == 0) endpoint.send(new InetSocketAddress("localhost", port), new TokenRequest());
         clients.add("tank" + counter, port);
         // Neu registrierter Client
         endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse("tank" + counter));
@@ -124,7 +123,7 @@ public class Broker {
             }
             else if(message.getPayload() instanceof PoisonPill) {
                 System.out.println("Received Poison Pill");
-                terminate();
+                snapshot();
             }
             else if(message.getPayload() instanceof StopRequest)
                 System.out.println("Received stop request, shutdown");

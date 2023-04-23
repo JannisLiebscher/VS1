@@ -22,9 +22,30 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	protected final Set<FishModel> fishies;
 	protected int fishCounter = 0;
 	protected final ClientCommunicator.ClientForwarder forwarder;
-	private InetSocketAddress right  = null;
-	private InetSocketAddress left = null;
-	private boolean token = false;
+	public InetSocketAddress right  = null;
+	public InetSocketAddress left = null;
+	private boolean token = true;
+	private Record record = Record.IDLE;
+	private int snapshot = -1;
+	private boolean initiator = false;
+	private boolean snapshotToken = false;
+
+	public synchronized void initiateSnapshot() {
+		snapshot = this.getFishCounter();
+		record = Record.BOTH;
+		forwarder.sendMarker(left);
+		forwarder.sendMarker(right);
+		initiator = true;
+		snapshotToken = true;
+	}
+	public synchronized void collectSnapshot(int snapshot) {
+		if(initiator) System.out.println("Initiator:" + snapshot + "Fishies in all Tanks");
+		else if(snapshot != -1 && record == Record.IDLE) forwarder.collectToken(snapshot + this.snapshot, left);
+		else {
+			snapshotToken = true;
+			this.snapshot += snapshot;
+		}
+	}
 	public boolean getToken() { return this.token;}
 	public void takeToken() {
 		try {
@@ -73,10 +94,22 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 			fishies.add(fish);
 		}
 	}
-
 	synchronized void receiveFish(FishModel fish) {
 		fish.setToStart();
 		fishies.add(fish);
+		if(record == Record.BOTH) {
+			snapshot++;
+		}
+		//Fisch kommt von rechts (schwimmt nach links)
+		else if(fish.getDirection().getVector() < 0 && record == Record.RIGHT) {
+			snapshot++;
+		}
+		//Fisch kommt von links (schwimmt nach rechts)
+		else if(fish.getDirection().getVector() > 0 && record == Record.LEFT) {
+			snapshot++;
+		}
+
+
 	}
 
 	public String getId() {
@@ -130,7 +163,38 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	public synchronized void finish() {
 		forwarder.deregister(id);
 	}
-
-	public void setEnum() {
+	private enum Record {
+		IDLE,
+		LEFT,
+		RIGHT,
+		BOTH
+	}
+	public synchronized void setEnum(int n) {
+		switch (record) {
+			case BOTH -> {
+				if(n < 0) record = Record.RIGHT;
+				else if(n > 0) record = Record.LEFT;
+			}
+			case LEFT -> {
+				if(n < 0) {
+					record = Record.IDLE;
+					System.out.println("Tank:" + snapshot + "Fishies");
+					if(snapshotToken) forwarder.collectToken(this.snapshot, left);;}
+				else if(n > 0) forwarder.sendMarker(left);
+			}
+			case RIGHT -> {
+				if(n > 0) {
+					record = Record.IDLE;
+					System.out.println("Tank:" + snapshot + "Fishies");
+					if(snapshotToken) forwarder.collectToken(this.snapshot, left);;}
+				else if(n < 0) forwarder.sendMarker(right);
+			}
+			default -> {
+				record = n < 0 ? Record.RIGHT : Record.LEFT;
+				snapshot = this.getFishCounter();
+				forwarder.sendMarker(left);
+				forwarder.sendMarker(right);
+			}
+		}
 	}
 }
