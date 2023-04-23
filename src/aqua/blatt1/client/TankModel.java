@@ -131,4 +131,6 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 		forwarder.deregister(id);
 	}
 
+	public void setEnum() {
+	}
 }

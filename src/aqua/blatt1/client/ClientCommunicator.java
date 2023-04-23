@@ -61,6 +61,8 @@ public class ClientCommunicator {
 
 				if (msg.getPayload() instanceof TokenRequest)
 					tankModel.giveToken();
+				if (msg.getPayload() instanceof MarkerRequest)
+					tankModel.setEnum();
 			}
 			System.out.println("Receiver stopped.");
 		}
