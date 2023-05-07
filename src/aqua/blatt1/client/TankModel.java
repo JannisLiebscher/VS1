@@ -67,9 +67,20 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 		this.forwarder = forwarder;
 	}
 
-	synchronized void onRegistration(String id) {
+	public void lease(int lease) {
+		try {
+			TimeUnit.SECONDS.sleep(lease);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		forwarder.deregister(this.id);
+	}
+
+	synchronized void onRegistration(String id, int lease) {
 		this.id = id;
 		newFish(WIDTH - FishModel.getXSize(), rand.nextInt(HEIGHT - FishModel.getYSize()));
+		Thread deregister = new Thread(() -> lease(lease));
+		deregister.start();
 	}
 
 	synchronized void newNeighbor(InetSocketAddress rightInput, InetSocketAddress leftInput){

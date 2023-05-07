@@ -9,6 +9,9 @@ import messaging.Message;
 
 import javax.swing.*;
 import java.net.InetSocketAddress;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -24,6 +27,18 @@ public class Broker {
     public void broker() {
         ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
         Thread stop = new Thread(() -> stop());
+
+        TimerTask task = new TimerTask() {
+            public void run() {
+                for (var client : clients) {
+                    ClientCollection.Client c = (ClientCollection.Client) client;
+                    ///c.timeste;
+                }
+            }
+        };
+        java.util.Timer timer = new Timer();
+        long delay = 1000L;
+        timer.schedule(task, delay);
         stop.start();
         while(!done) {
 
@@ -45,7 +60,12 @@ public class Broker {
     public void register(int port) {
         lock.writeLock().lock();
         //if(clients.size() == 0) endpoint.send(new InetSocketAddress("localhost", port), new TokenRequest());
-        clients.add("tank" + counter, port);
+        Date t = new Date();
+        if(clients.indexOf(port) == -1) {
+            clients.add("tank" + counter, port,t);
+        } else {
+            clients.setTimestamp(clients.indexOf(port),t);
+        }
         // Neu registrierter Client
         endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse("tank" + counter));
         endpoint.send(new InetSocketAddress("localhost", port), new UpdateNeighbor(

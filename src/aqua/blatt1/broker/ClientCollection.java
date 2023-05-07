@@ -8,8 +8,10 @@ import java.util.List;
  * externally synchronized. 
  */
 
-public class ClientCollection<T> {
-	private class Client {
+public class ClientCollection<T> implements Iterable {
+
+
+	public class Client {
 		final String id;
 		final T client;
 
@@ -52,6 +54,12 @@ public class ClientCollection<T> {
 	public T getClient(int index) {
 		return clients.get(index).client;
 	}
+	public Date getTimestamp(int index) {
+		return clients.get(index).timestamp;
+	}
+	public void setTimestamp(int index, Date timestamp) {
+		clients.get(index).timestamp = timestamp;
+	}
 
 	public int size() {
 		return clients.size();
@@ -63,6 +71,40 @@ public class ClientCollection<T> {
 
 	public T getRightNeighorOf(int index) {
 		return index < clients.size() - 1 ? clients.get(index + 1).client : clients.get(0).client;
+	}
+
+	public Iterator<Client> iterator() {
+		return new ClientIterator(clients);
+	}
+	public class ClientIterator implements Iterator<Client> {
+
+		List<Client> clients;
+		private int index;
+
+		public ClientIterator(List<Client> clients) {
+			this.clients = clients;
+			index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < clients.size();
+		}
+
+		@Override
+		public Client next() {
+			if (!hasNext()) {
+				throw new NoSuchElementException();
+			}
+			Client client = clients.get(index);
+			index++;
+			return client;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 }
