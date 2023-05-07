@@ -1,7 +1,6 @@
 package aqua.blatt1.broker;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /*
  * This class is not thread-safe and hence must be used in a thread-safe way, e.g. thread confined or 
@@ -14,10 +13,12 @@ public class ClientCollection<T> implements Iterable {
 	public class Client {
 		final String id;
 		final T client;
+		public Date timestamp;
 
-		Client(String id, T client) {
+		Client(String id, T client,Date timestamp) {
 			this.id = id;
 			this.client = client;
+			this.timestamp = timestamp;
 		}
 	}
 
@@ -27,8 +28,8 @@ public class ClientCollection<T> implements Iterable {
 		clients = new ArrayList<Client>();
 	}
 
-	public ClientCollection<T> add(String id, T client) {
-		clients.add(new Client(id, client));
+	public ClientCollection<T> add(String id, T client, Date timestamp) {
+		clients.add(new Client(id, client,timestamp));
 		return this;
 	}
 

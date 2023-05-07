@@ -1,4 +1,5 @@
-import aqua.blatt1.broker.ClientCollection;
+package aqua.blatt1.broker;
+
 import aqua.blatt1.common.FishModel;
 import aqua.blatt1.common.Properties;
 import aqua.blatt1.common.msgtypes.*;
