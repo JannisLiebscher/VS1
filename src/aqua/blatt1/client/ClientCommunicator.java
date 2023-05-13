@@ -69,6 +69,8 @@ public class ClientCommunicator {
 					tankModel.giveToken();
 				if (msg.getPayload() instanceof SnapshotRequest)
 					tankModel.initiateSnapshot();
+				if(msg.getPayload() instanceof DeregisterMessage)
+					tankModel.leaseFinish();
 				if (msg.getPayload() instanceof SnapshotToken)
 					tankModel.collectSnapshot(((SnapshotToken) msg.getPayload()).getSnapshot());
 				if (msg.getPayload() instanceof SnapshotMarker) {

@@ -6,10 +6,11 @@ import java.io.Serializable;
 public final class RegisterResponse implements Serializable {
 	private final String id;
 
-	private final int lease = 5;
+	private final int lease;
 
-	public RegisterResponse(String id) {
+	public RegisterResponse(String id, int lease) {
 		this.id = id;
+		this.lease = lease;
 	}
 
 	public String getId() {

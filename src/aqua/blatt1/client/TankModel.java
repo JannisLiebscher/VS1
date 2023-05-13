@@ -38,6 +38,7 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 		initiator = true;
 		snapshotToken = true;
 	}
+
 	public synchronized void collectSnapshot(int snapshot) {
 		if(initiator) System.out.println("Initiator:" + snapshot + "Fishies in all Tanks");
 		else if(snapshot != -1 && record == Record.IDLE) forwarder.collectToken(snapshot + this.snapshot, left);
@@ -46,7 +47,9 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 			this.snapshot += snapshot;
 		}
 	}
+
 	public boolean getToken() { return this.token;}
+
 	public void takeToken() {
 		try {
 			TimeUnit.SECONDS.sleep(2);
@@ -56,6 +59,7 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 		this.token = false;
 		forwarder.handoffToken(left);
 	}
+
 	public void giveToken() {
 		this.token = true;
 		Thread take = new Thread(this::takeToken);
@@ -69,11 +73,12 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 
 	public void lease(int lease) {
 		try {
-			TimeUnit.SECONDS.sleep(lease);
+			TimeUnit.SECONDS.sleep(lease + 1);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-		forwarder.deregister(this.id);
+		System.out.println("Registriere mich neu (" + this.id + ")");
+		forwarder.register();
 	}
 
 	synchronized void onRegistration(String id, int lease) {
@@ -105,6 +110,7 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 			fishies.add(fish);
 		}
 	}
+
 	synchronized void receiveFish(FishModel fish) {
 		fish.setToStart();
 		fishies.add(fish);
@@ -171,10 +177,17 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 		}
 	}
 
+	public synchronized void leaseFinish() {
+		System.out.println("Tank " + this.id + " verabschiedet sich");
+		System.exit(0);
+	}
+
 	public synchronized void finish() {
 		forwarder.deregister(id);
 	}
-	private enum Record {IDLE, LEFT, RIGHT,	BOTH}
+
+	private enum Record {IDLE, LEFT, RIGHT, BOTH}
+
 	public synchronized void setEnum(int n) {
 		switch (record) {
 			case BOTH -> {
@@ -185,15 +198,13 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 				if(n < 0) {
 					record = Record.IDLE;
 					System.out.println("Tank:" + snapshot + "Fishies");
-					if(snapshotToken) forwarder.collectToken(this.snapshot, left);;}
-				else if(n > 0) forwarder.sendMarker(left);
+					if(snapshotToken) forwarder.collectToken(this.snapshot, left);;} else if(n > 0) forwarder.sendMarker(left);
 			}
 			case RIGHT -> {
 				if(n > 0) {
 					record = Record.IDLE;
 					System.out.println("Tank:" + snapshot + "Fishies");
-					if(snapshotToken) forwarder.collectToken(this.snapshot, left);;}
-				else if(n < 0) forwarder.sendMarker(right);
+					if(snapshotToken) forwarder.collectToken(this.snapshot, left);;} else if(n < 0) forwarder.sendMarker(right);
 			}
 			default -> {
 				record = n < 0 ? Record.RIGHT : Record.LEFT;

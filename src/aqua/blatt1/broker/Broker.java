@@ -19,6 +19,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Broker {
+    int lease = 5;
     private static final int NUM_THREADS = 5;
     private Endpoint endpoint = new Endpoint(Properties.PORT);
     private ClientCollection clients = new ClientCollection();
@@ -33,13 +34,16 @@ public class Broker {
             public void run() {
                 for (var client : clients) {
                     ClientCollection.Client c = (ClientCollection.Client) client;
-                    ///c.timeste;
+                    if(c.timestamp.before(new Date(new Date().getTime() - lease  * 1000))) {
+                        System.out.println("Lease von Client " + clients.getClientId(clients.indexOf(c.client)) + " abgelaufen");
+                        deregister((int) c.client);
+                    }
                 }
             }
         };
         java.util.Timer timer = new Timer();
         long delay = 1000L;
-        timer.schedule(task, delay);
+        timer.schedule(task, delay, delay);
         stop.start();
         while(!done) {
 
@@ -63,12 +67,17 @@ public class Broker {
         //if(clients.size() == 0) endpoint.send(new InetSocketAddress("localhost", port), new TokenRequest());
         Date t = new Date();
         if(clients.indexOf(port) == -1) {
+            System.out.println("Registriere neuen Tank");
             clients.add("tank" + counter, port,t);
         } else {
             clients.setTimestamp(clients.indexOf(port),t);
+            endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse(clients.getClientId(clients.indexOf(port)), lease));
+            System.out.println("Verlängere Lease für Tank" + clients.getClientId(clients.indexOf(port)));
+            lock.writeLock().unlock();
+            return;
         }
         // Neu registrierter Client
-        endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse("tank" + counter));
+        endpoint.send(new InetSocketAddress("localhost", port), new RegisterResponse("tank" + counter, lease));
         endpoint.send(new InetSocketAddress("localhost", port), new UpdateNeighbor(
                 new InetSocketAddress("localhost", (int) clients.getLeftNeighorOf(clients.size() - 1)),
                 new InetSocketAddress("localhost", (int) clients.getRightNeighorOf(clients.size() - 1)))
@@ -91,12 +100,14 @@ public class Broker {
 
     public void deregister(int port) {
         lock.writeLock().lock();
+        System.out.println("Deregistriere Tank" + clients.getClientId(clients.indexOf(port)));
         int left = (int) clients.getLeftNeighorOf(clients.indexOf(port));
         int right = (int) clients.getRightNeighorOf(clients.indexOf(port));
         endpoint.send(new InetSocketAddress("localhost", left),
                 new UpdateNeighbor(null, new InetSocketAddress(right)));
         endpoint.send(new InetSocketAddress("localhost", right),
                 new UpdateNeighbor(new InetSocketAddress(left), null));
+        endpoint.send(new InetSocketAddress("localhost", port), new DeregisterMessage());
         clients.remove(clients.indexOf(port));
         lock.writeLock().unlock();
     }

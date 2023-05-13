@@ -55,6 +55,9 @@ public class ClientCollection<T> implements Iterable {
 	public T getClient(int index) {
 		return clients.get(index).client;
 	}
+	public String getClientId(int index) {
+		return clients.get(index).id;
+	}
 	public Date getTimestamp(int index) {
 		return clients.get(index).timestamp;
 	}
