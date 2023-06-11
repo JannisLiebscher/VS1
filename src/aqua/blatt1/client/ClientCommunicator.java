@@ -42,6 +42,9 @@ public class ClientCommunicator {
 		public void collectToken(int snapshot, InetSocketAddress adress) {
 			endpoint.send(adress, new SnapshotToken(snapshot));
 		}
+		public void sendLocation(InetSocketAddress adress,String fishId) {
+			endpoint.send(adress,new LocationRequest(fishId));
+		}
 	}
 
 	public class ClientReceiver extends Thread {
@@ -77,6 +80,9 @@ public class ClientCommunicator {
 					if (msg.getSender().equals(tankModel.left)) tankModel.setEnum(-1);
 					else if (msg.getSender().equals(tankModel.right)) tankModel.setEnum(1);
 					else System.out.println("Sender was not a neighbour");
+				}
+				if (msg.getPayload() instanceof LocationRequest) {
+					tankModel.locateFishGlobally(((LocationRequest) msg.getPayload()).getId());
 				}
 			}
 			System.out.println("Receiver stopped.");

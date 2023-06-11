@@ -19,7 +19,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Broker {
-    int lease = 5;
+    int lease = 300;
     private static final int NUM_THREADS = 5;
     private Endpoint endpoint = new Endpoint(Properties.PORT);
     private ClientCollection clients = new ClientCollection();
