@@ -141,25 +141,26 @@ public class Broker {
         @Override
         public void run() {
             int port = message.getSender().getPort();
-            if(message.getPayload() instanceof RegisterRequest) {
+            if (message.getPayload() instanceof RegisterRequest) {
                 System.out.println("Received register Request");
                 register(port);
-            }
-            else if(message.getPayload() instanceof DeregisterRequest) {
+            } else if (message.getPayload() instanceof DeregisterRequest) {
                 System.out.println("Received deregister Request");
                 deregister(port);
-            }
-            else if(message.getPayload() instanceof HandoffRequest) {
+            } else if (message.getPayload() instanceof HandoffRequest) {
                 System.out.println("Received handoffFish Request");
                 handoffFish(port, ((HandoffRequest) message.getPayload()).getFish());
-            }
-            else if(message.getPayload() instanceof PoisonPill) {
+            } else if (message.getPayload() instanceof PoisonPill) {
                 System.out.println("Received Poison Pill");
                 snapshot();
-            }
-            else if(message.getPayload() instanceof StopRequest)
+            } else if (message.getPayload() instanceof StopRequest){
                 System.out.println("Received stop request, shutdown");
-            else {
+            } else if(message.getPayload() instanceof NameResolutionRequest) {
+                String tankId = ((NameResolutionRequest) message.getPayload()).getTankId();
+                String RequestId = ((NameResolutionRequest) message.getPayload()).getRequestId();
+                int portOfTank = (int) clients.getClient(clients.indexOf(tankId));
+                endpoint.send(new InetSocketAddress("localhost", message.getSender().getPort()),new NameResolutionResponse(portOfTank,RequestId));
+            } else {
                 System.out.println("Unsupported Request");
             }
         }

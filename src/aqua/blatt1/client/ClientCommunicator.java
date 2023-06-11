@@ -45,6 +45,9 @@ public class ClientCommunicator {
 		public void sendLocation(InetSocketAddress adress,String fishId) {
 			endpoint.send(adress,new LocationRequest(fishId));
 		}
+		public void sendNameResolutionRequest(String tankId, String fishId) {
+			endpoint.send(broker,new NameResolutionRequest(tankId,fishId));
+		}
 	}
 
 	public class ClientReceiver extends Thread {
@@ -80,6 +83,16 @@ public class ClientCommunicator {
 					if (msg.getSender().equals(tankModel.left)) tankModel.setEnum(-1);
 					else if (msg.getSender().equals(tankModel.right)) tankModel.setEnum(1);
 					else System.out.println("Sender was not a neighbour");
+				}
+				if (msg.getPayload() instanceof NameResolutionResponse) {
+					InetSocketAddress adress = new InetSocketAddress("localhost",((NameResolutionResponse) msg.getPayload()).getAquaPort());
+					String fishId = ((NameResolutionResponse) msg.getPayload()).getRequestId();
+					endpoint.send(adress,new LocationUpdate(fishId));
+				}
+				if (msg.getPayload() instanceof LocationUpdate) {
+					String fishId = ((LocationUpdate) msg.getPayload()).getRequestId();
+					int port = msg.getSender().getPort();
+					tankModel.updateHomeAgent(fishId,port);
 				}
 				if (msg.getPayload() instanceof LocationRequest) {
 					tankModel.locateFishGlobally(((LocationRequest) msg.getPayload()).getId());

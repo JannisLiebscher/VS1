@@ -28,8 +28,12 @@ public class TankModel extends Observable implements Iterable<FishModel> {
     private boolean initiator = false;
     private boolean snapshotToken = false;
 
-    private Map<FishModel, FishPos> fishPositions = new ConcurrentHashMap<>();
+    private Map<FishModel, FishPos> fishPositions = new HashMap<>();
+    private Map<String, Integer> homeAgent = new HashMap<>();
 
+    public void updateHomeAgent(String fishId,int port){
+        homeAgent.replace(fishId,port);
+    }
     public synchronized void initiateSnapshot() {
         snapshot = this.getFishCounter();
         record = Record.BOTH;
@@ -110,6 +114,7 @@ public class TankModel extends Observable implements Iterable<FishModel> {
                     rand.nextBoolean() ? Direction.LEFT : Direction.RIGHT);
 
             fishPositions.put(fish,FishPos.HERE);
+            homeAgent.put(fish.getId(),null);
             fishies.add(fish);
         }
     }
@@ -128,6 +133,13 @@ public class TankModel extends Observable implements Iterable<FishModel> {
         else if (fish.getDirection().getVector() > 0 && record == Record.LEFT) {
             snapshot++;
         }
+        //homeAgent
+        if(fish.getTankId()==this.id){
+            homeAgent.replace(fish.getId(),null);
+        }else {
+            forwarder.sendNameResolutionRequest(fish.getTankId(), fish.getId());
+        }
+        //forwarder
         if (fishPositions.containsKey(fish)) {
             fishPositions.replace(fish,FishPos.HERE);
         }else {
@@ -231,7 +243,7 @@ public class TankModel extends Observable implements Iterable<FishModel> {
         }
     }
 
-    public void locateFishGlobally(String fishId) {
+    public void locateFishGloballyOld(String fishId) {
         System.out.println("Locate fish " + fishId + " Globally");
         for (FishModel key : fishPositions.keySet()) {
             if(key.getId().equals(fishId)){
@@ -240,9 +252,23 @@ public class TankModel extends Observable implements Iterable<FishModel> {
                 } else if (fishPositions.get(key).equals(FishPos.LEFT)) {
                     forwarder.sendLocation(left,fishId);
                 }else {
-                    forwarder.sendLocation(left,fishId);
+                    forwarder.sendLocation(right,fishId);
                 }
             }
         }
     }
+    public void locateFishGlobally(String fishId) {
+        System.out.println("Locate fish " + fishId + " Globally with homeAgent in: " + this.id);
+        for (FishModel f:fishies) {
+            if(f.getId().equals(fishId)){
+                f.toggle();
+                System.out.println("toggle");
+                return;
+            }
+        }
+        System.out.println("not found fish id: " +  homeAgent.get(fishId));
+        Integer port = homeAgent.get(fishId);
+        forwarder.sendLocation(new InetSocketAddress("localhost", port.intValue()), fishId);
+        }
+
 }
