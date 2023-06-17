@@ -9,10 +9,11 @@ import aqua.blatt1.common.FishModel;
 import aqua.blatt1.common.Properties;
 
 public class ClientCommunicator {
-	private final Endpoint endpoint;
+	//private final Endpoint endpoint;
+	private final SecureEndpoint endpoint;
 
 	public ClientCommunicator() {
-		endpoint = new Endpoint();
+		endpoint = new SecureEndpoint();
 	}
 
 	public class ClientForwarder {

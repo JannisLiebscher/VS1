@@ -1,5 +1,6 @@
 package aqua.blatt1.broker;
 
+import aqua.blatt1.client.SecureEndpoint;
 import aqua.blatt1.common.FishModel;
 import aqua.blatt1.common.Properties;
 import aqua.blatt1.common.msgtypes.*;
@@ -21,7 +22,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class Broker {
     int lease = 300;
     private static final int NUM_THREADS = 5;
-    private Endpoint endpoint = new Endpoint(Properties.PORT);
+    //private Endpoint endpoint = new Endpoint(Properties.PORT);
+    private SecureEndpoint endpoint = new SecureEndpoint(Properties.PORT);
     private ClientCollection clients = new ClientCollection();
     private int counter = 0;
     private ReadWriteLock lock = new ReentrantReadWriteLock();
